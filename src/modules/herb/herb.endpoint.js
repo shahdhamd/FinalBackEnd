@@ -6,4 +6,5 @@ export const endpoint={
     update:[roles.Admin],
     search:[roles.User,roles.Admin],
     getAllHerb:[roles.User,roles.Admin],
+    HerbByUser:[roles.Admin]
 }

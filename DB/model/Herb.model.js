@@ -1,9 +1,15 @@
 
 import {Types,Schema, model } from "mongoose";
 const herbSchema=new Schema({
-    name:{
+    ArabicName:{
         type:String,
-        required:[true,'user name is required'],
+        required:[true,'Arabic Name is required'],
+        min:[3,'min length is 3'],
+        max:[25,'max length is 25']
+    },
+    EnglishName:{
+        type:String,
+        required:[true,'English Name is required'],
         min:[3,'min length is 3'],
         max:[25,'max length is 25']
     },
@@ -22,6 +28,7 @@ const herbSchema=new Schema({
         required:[true,'herb owner is required']
     },
     publicId:String
+
 
 })
 

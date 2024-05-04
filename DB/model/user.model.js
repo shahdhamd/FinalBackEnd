@@ -15,7 +15,7 @@ let now=moment()
     },
     passward:{
         type:String,
-        required:[true,'passward is required']
+        // required:[true,'password is required']
     },
     role:{
         type:String,

@@ -9,12 +9,12 @@ export const signup=async(req,res)=>{
       const {passward,userName,email}=req.body
       const user=await userModel.findOne({email:email})
       if(user){
-          res.json('email exist')
+          res.json(' تم تسجيل هذا البريد الإلكتروني مسبقًا')
       }
       else{
           const hash=bcrypt.hashSync(passward,parseInt(process.env.SaltRound))  ///شفرته 
           const newUser=await userModel({userName,email,passward:hash}) // خزنت الداتا في متغير
-          let token=jwt.sign({id:newUser._id},process.env.ConfirmEmailToken,{expiresIn:'1h'}) // عملت توكن
+          let token=jwt.sign({id:newUser._id,userName,passward},process.env.ConfirmEmailToken,{expiresIn:'1h'}) // عملت توكن
                 // let link=`${req.protocol}:/${req.headers.host}${process.env.BASEURL}auth/confirmEmail/${token}`
                 // res.json(link)
           let message=`<!DOCTYPE html>
@@ -282,7 +282,7 @@ export const signup=async(req,res)=>{
               const saveUser=await newUser.save()
               return res.status(200).json({message:'sucess',saveUser})
           }else{
-              return res.json('fail signup')
+              return res.json('فشل انشاء الحساب')
           }
           }
     }catch(error){
@@ -296,7 +296,7 @@ export const confirmEmail=async(req,res)=>{
         const decoded=jwt.verify(token,process.env.ConfirmEmailToken)
         // res.json(decoded)
         if(!decoded){
-            res.json({message:'invalid token'})
+            res.json('invalid token')
         }else{
             const user=await userModel.findByIdAndUpdate({_id:decoded.id ,confirmEmail:false},{confirmEmail:true})
            return res.status(200).json({message:'sucess confirm',user})
@@ -311,22 +311,27 @@ export const confirmEmail=async(req,res)=>{
 export const signin=async(req,res)=>{
     try{
         const {email,passward}=req.body;  
-        const findUser=await userModel.findOne({email:email})
-        if(!findUser){
-            return res.json({message:'go to sign up please'})
-        }else{
-            if(!findUser.confirmEmail){
-               return res.json({message:'confirm email please'})
-            }
-            const match=bcrypt.compare(passward,findUser.passward)
-            if(!match){
-               return res.json({message:'invaild passward'})
-            }
-            const now=moment()
-            const user=await userModel.findByIdAndUpdate(findUser.id,{lastOpenDate:now})
-            const token =jwt.sign({id:findUser._id},process.env.TokenSignIn,{expiresIn:60 *60 *24})
-            return res.status(200).json({message:"sucess sign in",token})
-        }
+       const user=await userModel.findOne({email});
+  // res.json(user)
+  if(!user){
+      res.json('هذا البريد الإلكتروني غير مسجل')
+  }else{
+      if(!user.confirmEmail){
+          res.json('يُرجى الانتقال إلى بريدك الإلكتروني لتأكيد الحساب')
+      }else{
+          if(user.blocked){
+              res.json('الحساب مقفل')
+          }else{
+              const match=await bcrypt.compare(passward,user.passward)
+              if(!match){
+                  res.json('يرجى التأكد من صحة كلمة المرور ')
+              }else{
+                  const token= jwt.sign({id:user._id,email,userName:user.userName,role:user.role},process.env.TokenSignIn,{expiresIn:60 * 60 * 24})
+                  res.status(200).json({message:'sucess',token})
+              }
+          }
+      }
+  }
     }catch(error){
         res.json(`catch error ${error}`)
     }
@@ -336,13 +341,13 @@ export const forgetPassward=async(req,res)=>{
   try{
       const {code,email,newPassward}=req.body;
       if(code==null){
-        return res.json({message:'enter code please'})
+        return res.json('الرجاء إدخال رمن اعادة التعيين')
       }
       else{
           const hash=bcrypt.hashSync(newPassward,parseInt(process.env.SaltRound))
           const user=await userModel.findOneAndUpdate({email:email,sendCode:code},{passward:hash,sendCode:null})
           if(!user){
-            return res.json({message:'fail'})
+            return res.json('الرجاء التحقق من صحة الرمز')
           }
           return res.status(200).json({message:'sucess',user})
       }
@@ -356,12 +361,12 @@ export const sendCode=async(req,res)=>{
         const {email}=req.body;
         const findUser=await userModel.findOne({email:email})
         if(!findUser){
-            return res.json({message:'go to sign up please'})
+            return res.json('الرجاء تسجيل الدخول')
         }
         const code=nanoid()
         const user=await userModel.findOneAndUpdate({_id:findUser.id},{sendCode:code})
         if(!user){
-            return res.status(400).json('fail')
+            return res.json('فشل ارسال الرمز')
         }
         await sendEmail(email,'forget passward',`verify code ${code}`)
         return res.status(200).json({message:'sucess',user})
@@ -371,4 +376,3 @@ export const sendCode=async(req,res)=>{
     
 
 }
-

@@ -1,11 +1,12 @@
 import { herbModel } from "../../../../DB/model/Herb.model.js"
 import cloudinary from "../../../services/cloudinary.js"
 import { pagination } from "../../../services/pagination.js"
+import ReactPaginate from 'react-paginate';
 
 export const createHerb=async(req,res)=>{
     try{
-        const {name,description,benefit,image,effect,place}=req.body
-        const findHerb=await herbModel.findOne({name:name})
+        const {ArabicName,EnglishName,description,benefit,image,effect,place}=req.body
+        const findHerb=await herbModel.findOne({ArabicName:ArabicName})
         if(findHerb){
             return res.status(400).json({message:'herb already exist'})
         }
@@ -72,17 +73,69 @@ export const searchByName=async(req,res)=>{
         return res.status(400).json({message:`catch error ${error}`})
     }
 }
-export const getAllHerb=async(req,res)=>{
-    try{
-        const {page}=req.query
-        const{limit, skip}=pagination(page)
-        const herb=await herbModel.find({})
-        if(!herb){
-            return res.status(400).json({message:'fail'})
-        }
-        return res.status(200).json({message:'sucess',herb})
-    }catch(error){
-        return res.status(400).json({message:`catch error ${error}`})
+export const getAllHerb = async (req, res) => {
+    try {
+      let { page, size } = req.query;
+      let { limit, skip } = pagination(page, size);
+  
+      if (!size || size <= 0) {
+        limit = 8;
+        size = 8;
+      }
+      if (!page || page <= 0) {
+        console.log('ttruee');
+        page = 1;
+      }
+      let startIndex = (page - 1) * limit;
+      let lastIndex = page * limit;
+  
+      // const herb=await herbModel.find({}).limit(limit).skip(skip)
+      const herb = await herbModel.find({}).maxTimeMS(20000);
+  
+      let result = {};
+      const totalUser = herb.length;
+      const pageCount = Math.ceil(herb.length / limit);
+      let next;
+      if (lastIndex < herb.length) {
+        next = {
+          page: page + 1,
+        };
+      }
+      let prev;
+      if (startIndex > 0) {
+        prev = {
+          page: page - 1,
+        };
+      }
+  
+      result = herb.slice(startIndex, lastIndex);
+      if (!result) {
+        return res.status(400).json({ message: 'fail' });
+      }
+      return res.status(200).json({
+        message: 'success',
+        totalUser,
+        pageCount,
+        next,
+        prev,
+        result,
+      });
+    } catch (error) {
+      return res.status(400).json({ message: `catch error ${error}` });
     }
+  };
+
+export const HerbByUser=async(req,res)=>{
+  try{
+    const {id}=req.params
+    const herb=await herbModel.find({createdBy:id})
+    if(!herb){
+        res.json({message:'not find herb'})
+    }
+    res.status(200).json({message:'sucess',herb})
+}catch(error){
+    return res.json({message:`catch error ${error}`})
 }
+}
+  
 
