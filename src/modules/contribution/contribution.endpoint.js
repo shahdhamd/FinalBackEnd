@@ -1,9 +1,8 @@
 import { roles } from "../../services/roles.js";
 
 export const endpoint={
-    createHerb:[roles.Admin],
-    delete:[roles.Admin],
-    update:[roles.Admin],
-    search:[roles.User,roles.Admin],
-    getAllHerb:[roles.User,roles.Admin],
+    getAll:[roles.Admin,roles.User],
+    update:[roles.Admin,roles.User],
+    createContribution:[roles.Admin,roles.User],
+    delete:[roles.User,roles.Admin]
 }
