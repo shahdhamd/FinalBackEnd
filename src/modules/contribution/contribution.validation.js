@@ -1,27 +1,23 @@
 import joi from 'joi'
 
 export const createContribution = {
-    body: joi.object({
+    body:joi.object().required().keys({
         ArabicName: joi.string().min(2).max(25).required(),
         EnglishName: joi.string().min(2).max(25).required(),
         description: joi.string().min(10).required().messages({
-          'string.min': 'الوصف يجب ان تكون 10 احرف على الاقل',
+          'string.min': 'يجب ان يتكون الوصف من  10 احرف على الاقل ',
       }),
         benefit: joi.string().min(10).required().messages({
-            'string.min': 'الفوائد يجب ان تكون 10 احرف على الاقل',
+            'string.min': 'يجب ان يتكون الفوائد من  10 احرف على الاقل',
         }),
         effect: joi.string().min(5).required().messages({
-            'string.min': 'الاثارالجانبية يجب ان تكون 10 احرف على الاقل',
+            'string.min': 'يجب ان يتكون الاثارالجانبية  من  5 احرف على الاقل',
         }),
         place: joi.string().min(3).required().messages({
-            'string.min': 'المنشأ يجب ان تكون 5 احرف على الاقل',
+            'string.min': 'يجب ان يتكون المنشأ من  3 احرف على الاقل',
         }),
-        image: joi.object().required().messages({
-            'any.required': 'قم بإدراج الصورة',
-        }),
-    }).required(),
+    })
 };
-
 
 
 export const updateContribution={
