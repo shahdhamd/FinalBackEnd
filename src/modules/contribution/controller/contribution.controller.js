@@ -5,13 +5,10 @@ import cloudinary from "../../../services/cloudinary.js"
 
 
 export const createContribution = async (req, res) => {
-  console.log('hellloooo')
   try {
     const { ArabicName, EnglishName, description, benefit, image, effect, place } = req.body
-    console.log(place);
     const findHerb = await herbModel.findOne({ ArabicName: ArabicName })
     const findContribution = await contributionModel.findOne({ ArabicName: ArabicName })
-
     if (findHerb) {
       return res.json({ message: 'النبتة موجودة مسبقا' });
     }
@@ -56,6 +53,8 @@ export const updateContribution = async (req, res) => {
     if (!findContribution) {
       return res.status(400).json({ message: 'Invalid id for contribution' });
     }
+    console.log('id',findContribution._id);
+    req.body.contributionID=findContribution._id;
     if(findContribution){
       if(!ArabicName){
         req.body.ArabicName=findContribution.ArabicName
@@ -79,18 +78,22 @@ export const updateContribution = async (req, res) => {
         req.body.verified=findContribution.verified
       }
       if(req.file){
-        const {secure_url}=await cloudinary.uploader.upload(req.file.path,{
+        const {secure_url,public_id}=await cloudinary.uploader.upload(req.file.path,{
           folder:`plant/user/${_id}`
+        
         })
         req.body.image=secure_url;
+        req.body.publicId=public_id
       }else{
         req.body.image=findContribution.image
+        req.body.publicId=findContribution.publicId;
       }
         req.body.createdBy = findContribution.createdBy;
         console.log(place)
     if (verified && !findContribution.verified) {
       const herb=await herbModel.create(req.body)
     }
+    console.log(req.body)
     const updateContribution = await contributionModel.findByIdAndUpdate(id, req.body, { new: true });
 
     return res.status(200).json({ message: 'succes', updateContribution });
