@@ -1,13 +1,14 @@
 import Router from "express";
-import { endpoint } from "./contribution.endpoint.js";
+import { endpoint } from "./herb.endpoint.js";
 const router=Router()
-import * as contribution from './controller/contribution.controller.js'
+import * as herb from './controller/herb.controller.js'
 import {auth} from '../../middlewares/auth.js'
-import * as validateContribution from './contribution.validation.js'
+import * as validateHerb from './herb.validation.js'
 import { fileValidation, myMulter } from "../../services/multer.js";
 import { validation } from "../../middlewares/validation.js";
-router.delete('/:id',auth(endpoint.delete),contribution.deleteContribution)
-router.get('/',auth(endpoint.getAll),contribution.getAll)
-router.patch('/:id',auth(endpoint.update),myMulter(fileValidation.imag).single('image'),contribution.updateContribution)
-router.post('/',auth(endpoint.createContribution), myMulter(fileValidation.imag).single('image'),validation(validateContribution.createContribution),contribution.createContribution)
+router.post('/',auth(endpoint.createHerb),myMulter(fileValidation.imag).single('image'),validation(validateHerb.createHerb),herb.createHerb)
+router.delete('/:id',auth(endpoint.delete),herb.deleteHerb)
+router.patch('/:id',auth(endpoint.update),myMulter(fileValidation.imag).single('image'),herb.updateHerb)
+router.get('/',herb.getHerb)
+router.get('/all',herb.getAllHerb)
 export default router
